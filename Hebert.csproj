@@ -1,0 +1,9 @@
+<Project Sdk="Godot.NET.Sdk/4.5.0">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>CS8600;CS8602;CS8603</WarningsAsErrors>
+  </PropertyGroup>
+</Project>

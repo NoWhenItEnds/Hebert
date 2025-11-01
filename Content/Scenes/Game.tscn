@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3 uid="uid://dj3yplavgjakl"]
+
+[ext_resource type="Script" uid="uid://0oh2l7kn0eqq" path="res://Systems/Managers/InputManager.cs" id="1_8wdfg"]
+
+[node name="Game" type="Node"]
+
+[node name="Managers" type="Node" parent="."]
+
+[node name="Chunk Manager" type="Node" parent="Managers"]
+
+[node name="Turn Manager" type="Node" parent="Managers"]
+
+[node name="Input Manager" type="Node" parent="Managers"]
+script = ExtResource("1_8wdfg")
+
+[node name="Chunks" type="Node3D" parent="."]
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
