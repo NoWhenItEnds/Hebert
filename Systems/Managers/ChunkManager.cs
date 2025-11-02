@@ -11,21 +11,19 @@ using Hebert.Types.Singletons;
 namespace Hebert.Managers
 {
     /// <summary> Orchestrates many chunks, ensuring the correct ones are loaded and processing. </summary>
-    public partial class ChunkManager : SingletonNode3D<ChunkManager>
+    public partial class ChunkManager : SingletonNode<ChunkManager>
     {
         /// <summary> The number of cells within a single chunk. </summary>
         /// <remarks> X = width, Y = depth, Z = height. </remarks>
         [ExportGroup("Settings")]
         [Export] private Vector3I _chunkSize = new Vector3I(256, 256, 32);
 
+        /// <summary> The size of each cell within the chunk. This should represent a world metre. </summary>
+        [Export] private Vector3 _cellSize = new Vector3(1f, 1f, 1f);
+
         /// <summary> The number of chunks in the world. </summary>
         // TODO - Make this generated from a world schematic.
         [Export] private Vector3I _worldSize = new Vector3I(10, 10, 2);
-
-
-        /// <summary> The prefab used to spawn additional chunks. </summary>
-        [ExportGroup("Resources")]
-        [Export] private PackedScene _chunkPrefab;
 
 
         /// <summary> A reference to the local manager of tasks. </summary>
@@ -46,8 +44,7 @@ namespace Hebert.Managers
                     for (Int32 x = 0; x < _worldSize.X; x++)
                     {
                         Vector3I position = new Vector3I(x, y, z);
-                        Chunk chunk = CreateChunk(position);
-                        _taskManager.AddTask(Task.Run(() => chunk.Initialise(position, _chunkSize)));
+                        _taskManager.AddTask(Task.Run(() => CreateChunk(position)));
                     }
                 }
             }
@@ -65,13 +62,7 @@ namespace Hebert.Managers
                 throw new EntityException($"There is already a chunk at the coordinates {position}!");
             }
 
-            Chunk? chunk = _chunkPrefab.InstantiateOrNull<Chunk>();
-            if (chunk == null)
-            {
-                throw new EntityException("The chunk prefab given to the chunk manager is of the incorrect type!");
-            }
-
-            AddChild(chunk);
+            Chunk chunk = new Chunk(position, _chunkSize);
             _chunks.Add(chunk);
 
             return chunk;
