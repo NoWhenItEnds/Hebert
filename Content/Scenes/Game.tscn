@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://dj3yplavgjakl"]
+[gd_scene load_steps=6 format=3 uid="uid://dj3yplavgjakl"]
 
 [ext_resource type="Script" uid="uid://0oh2l7kn0eqq" path="res://Systems/Managers/InputManager.cs" id="1_8wdfg"]
 [ext_resource type="Script" uid="uid://bwxenf5s07cqi" path="res://Systems/Managers/ChunkManager.cs" id="2_j7grf"]
+[ext_resource type="Script" uid="uid://duepoaex1du7q" path="res://Systems/Managers/EntityManager.cs" id="3_j7grf"]
+[ext_resource type="PackedScene" uid="uid://dj7fj3g2cfcta" path="res://Systems/Entities/EntityPrefab.tscn" id="4_5p3x2"]
+[ext_resource type="Script" uid="uid://th1abe8dmb80" path="res://Systems/Types/WorldCamera.cs" id="5_sa7mi"]
 
 [node name="Game" type="Node"]
 
@@ -23,6 +26,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MainCamera" type="Node3D" parent="."]
+[node name="Entities" type="Node3D" parent="."]
+script = ExtResource("3_j7grf")
+_entityPrefab = ExtResource("4_5p3x2")
 
-[node name="Camera3D" type="Camera3D" parent="MainCamera"]
+[node name="World Camera" type="Node3D" parent="." node_paths=PackedStringArray("_mainCamera")]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 5, 0)
+script = ExtResource("5_sa7mi")
+_mainCamera = NodePath("MaIn Camera")
+
+[node name="MaIn Camera" type="Camera3D" parent="World Camera"]

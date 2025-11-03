@@ -1,3 +1,20 @@
-[gd_scene format=3 uid="uid://dj7fj3g2cfcta"]
+[gd_scene load_steps=3 format=3 uid="uid://dj7fj3g2cfcta"]
 
-[node name="Entity" type="Node3D"]
+[ext_resource type="Script" uid="uid://dqnpmpw6wf7sq" path="res://Systems/Entities/EntityNode.cs" id="1_0qwpa"]
+[ext_resource type="SpriteFrames" uid="uid://t8kcont1kva7" path="res://Content/Textures/Tiles/Frames_Tiles_Placeholders.tres" id="2_2cg2v"]
+
+[node name="Entity" type="Node3D" node_paths=PackedStringArray("CameraPosition", "_spriteNode")]
+script = ExtResource("1_0qwpa")
+CameraPosition = NodePath("Camera Position")
+_spriteNode = NodePath("AnimatedSprite3D")
+
+[node name="Camera Position" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 5, 0)
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+pixel_size = 0.0313
+axis = 1
+texture_filter = 0
+sprite_frames = ExtResource("2_2cg2v")
+animation = &"rogues"
+frame = 12

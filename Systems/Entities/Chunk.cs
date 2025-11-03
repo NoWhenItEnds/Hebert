@@ -10,6 +10,9 @@ namespace Hebert.Entities
         /// <summary> The coordinates in chunk space the chunk is positioned. </summary>
         public Vector3I ChunkPosition { get; private set; } = Vector3I.Zero;
 
+        /// <summary> How many cells the chunk contains. </summary>
+        public Vector3I ChunkSize { get; private set; } = Vector3I.Zero;
+
 
         /// <summary> A grid of all the entities within the chunk. </summary>
         private readonly List<IEntity>[,,] _entities;
@@ -21,6 +24,7 @@ namespace Hebert.Entities
         public Chunk(Vector3I chunkPosition, Vector3I chunkSize)
         {
             ChunkPosition = chunkPosition;
+            ChunkSize = chunkSize;
             _entities = new List<IEntity>[chunkSize.X, chunkSize.Y, chunkSize.Z];
 
             // Initialise the cells.
@@ -36,6 +40,37 @@ namespace Hebert.Entities
             }
 
             GD.Print($"Chunk @ {ChunkPosition} was initialised.");    // TODO - Use logger.
+        }
+
+
+        /// <summary> Get the position of a global position relative to the chunk, or in chunk coordinates. </summary>
+        /// <param name="globalPosition"> The global position to convert. </param>
+        /// <returns> The converted position in chunk coordinates. </returns>
+        /// <exception cref="ArgumentOutOfRangeException"> If the position exceeds the bounds of the chunk. </exception>
+        public Vector3I GetLocalPosition(Vector3I globalPosition)
+        {
+            Vector3I localPosition = globalPosition - (ChunkPosition * ChunkSize);
+            if (localPosition < Vector3I.Zero || localPosition >= ChunkSize)
+            {
+                throw new ArgumentOutOfRangeException($"The given global position, {globalPosition}, when converted to local space, {localPosition}, is beyond the chunk bounds of {Vector3I.Zero} - {ChunkSize}.");
+            }
+
+            return localPosition;
+        }
+
+
+        /// <summary> Gets an array of the entities current occupying the given chunk position. </summary>
+        /// <param name="localPosition"> The chunk position to get the entities from. </param>
+        /// <returns> An array of the entities currently occupying the given position.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"> If the position exceeds the bounds of the chunk. </exception>
+        public IEntity[] GetEntities(Vector3I localPosition)
+        {
+            if (localPosition < Vector3I.Zero || localPosition >= ChunkSize)
+            {
+                throw new ArgumentOutOfRangeException($"The given position, {localPosition}, is beyond the chunk bounds of {Vector3I.Zero} - {ChunkSize}.");
+            }
+
+            return _entities[localPosition.X, localPosition.Y, localPosition.Z].ToArray();
         }
 
 

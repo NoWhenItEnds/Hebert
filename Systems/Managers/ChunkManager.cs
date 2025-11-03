@@ -19,7 +19,7 @@ namespace Hebert.Managers
         [Export] private Vector3I _chunkSize = new Vector3I(256, 256, 32);
 
         /// <summary> The size of each cell within the chunk. This should represent a world metre. </summary>
-        [Export] private Vector3 _cellSize = new Vector3(1f, 1f, 1f);
+        [Export] public Vector3 CellSize { get; private set; } = new Vector3(1f, 1f, 1f);
 
         /// <summary> The number of chunks in the world. </summary>
         // TODO - Make this generated from a world schematic.
@@ -57,7 +57,7 @@ namespace Hebert.Managers
         /// <exception cref="EntityException"> If the prefab couldn't be instantiated. </exception>
         private Chunk CreateChunk(Vector3I position)
         {
-            if(_chunks.FirstOrDefault(x => x.ChunkPosition == position) != null)
+            if (_chunks.FirstOrDefault(x => x.ChunkPosition == position) != null)
             {
                 throw new EntityException($"There is already a chunk at the coordinates {position}!");
             }
@@ -71,28 +71,33 @@ namespace Hebert.Managers
 
         /// <summary> Get the chunk at the specified chunk coordinate. </summary>
         /// <param name="position"> The position of the chunk in chunk coordinates to get. </param>
-        /// <returns> The found chunk. </returns>
-        /// <exception cref="EntityException"> If a chunk does not exist at the given coordinates. </exception>
-        private Chunk GetChunkFromChunkPosition(Vector3I position)
+        /// <returns> The found chunk. Will throw an error if the position is out of bounds. </returns>
+        /// <exception cref="ArgumentOutOfRangeException"> If the given position is not within the bounds of a chunk. </exception>
+        public Chunk GetChunkFromChunkPosition(Vector3I position)
         {
-            try
+            Chunk? chunk = _chunks.FirstOrDefault(x => x.ChunkPosition == position) ?? null;
+            if (chunk == null)
             {
-                return _chunks.First(x => x.ChunkPosition == position);
+                throw new ArgumentOutOfRangeException($"There is no chunk at the given chunk position of {position}.");
             }
-            catch (InvalidOperationException exception)
-            {
-                throw new EntityException($"The chunk manager does not have a chunk registered to the given position of '{position}'.", exception);
-            }
+            return chunk;
         }
 
 
         /// <summary> Get the chunk at the specified world coordinate. </summary>
-        /// <param name="position"> The position of the chunk in world coordinates to get. </param>
-        /// <returns> The found chunk. </returns>
-        private Chunk GetChunkFromWorldPosition(Vector3I position)
+        /// <param name="globalPosition"> The position of the chunk in world coordinates to get. </param>
+        /// <returns> The found chunk. Will throw an error if the position is out of bounds. </returns>
+        /// <exception cref="ArgumentOutOfRangeException"> If the given position is not within the bounds of a chunk. </exception>
+        public Chunk GetChunkFromWorldPosition(Vector3I globalPosition) => GetChunkFromChunkPosition(globalPosition / _chunkSize);
+
+
+        /// <summary> Gets an array of the entities current occupying the given global position. </summary>
+        /// <param name="globalPosition"> The global position to get the entities from. </param>
+        /// <returns> An array of the entities currently occupying the given position.</returns>
+        public IEntity[] GetEntities(Vector3I globalPosition)
         {
-            Vector3I chunkPosition = position / _chunkSize;
-            return GetChunkFromChunkPosition(chunkPosition);
+            Chunk chunk = GetChunkFromWorldPosition(globalPosition);
+            return chunk.GetEntities(globalPosition / _chunkSize);
         }
     }
 }
