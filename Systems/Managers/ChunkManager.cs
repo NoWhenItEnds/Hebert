@@ -14,16 +14,15 @@ namespace Hebert.Managers
     public partial class ChunkManager : SingletonNode<ChunkManager>
     {
         /// <summary> The number of cells within a single chunk. </summary>
-        /// <remarks> X = width, Y = depth, Z = height. </remarks>
         [ExportGroup("Settings")]
-        [Export] private Vector3I _chunkSize = new Vector3I(256, 256, 32);
+        [Export] private Int32 _chunkSize = 256;
 
         /// <summary> The size of each cell within the chunk. This should represent a world metre. </summary>
         [Export] public Vector3 CellSize { get; private set; } = new Vector3(1f, 1f, 1f);
 
         /// <summary> The number of chunks in the world. </summary>
         // TODO - Make this generated from a world schematic.
-        [Export] private Vector3I _worldSize = new Vector3I(10, 10, 2);
+        [Export] private Vector3I _worldSize = new Vector3I(10, 10, 1);
 
 
         /// <summary> A reference to the local manager of tasks. </summary>
