@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using Hebert.Entities;
@@ -15,21 +14,21 @@ namespace Hebert.Managers
     {
         /// <summary> The number of cells within a single chunk. </summary>
         [ExportGroup("Settings")]
-        [Export] private Int32 _chunkSize = 256;
+        [Export] private Int32 _chunkSize = 64;
 
         /// <summary> The size of each cell within the chunk. This should represent a world metre. </summary>
         [Export] public Vector3 CellSize { get; private set; } = new Vector3(1f, 1f, 1f);
 
         /// <summary> The number of chunks in the world. </summary>
         // TODO - Make this generated from a world schematic.
-        [Export] private Vector3I _worldSize = new Vector3I(10, 10, 1);
+        [Export] private Vector3I _worldSize = new Vector3I(1, 1, 1);
 
 
         /// <summary> A reference to the local manager of tasks. </summary>
         private TaskManager _taskManager = new TaskManager();
 
-        /// <summary> A reference to all the chunks within the game world. </summary>
-        private HashSet<Chunk> _chunks = new HashSet<Chunk>();
+        /// <summary> A reference to all the chunks within the game world keyed to their positions. </summary>
+        private Dictionary<Vector3I, Chunk> _chunks = new Dictionary<Vector3I, Chunk>();
 
 
         /// <inheritdoc/>
@@ -56,13 +55,13 @@ namespace Hebert.Managers
         /// <exception cref="EntityException"> If the prefab couldn't be instantiated. </exception>
         private Chunk CreateChunk(Vector3I position)
         {
-            if (_chunks.FirstOrDefault(x => x.ChunkPosition == position) != null)
+            if (_chunks.ContainsKey(position))
             {
                 throw new EntityException($"There is already a chunk at the coordinates {position}!");
             }
 
             Chunk chunk = new Chunk(position, _chunkSize);
-            _chunks.Add(chunk);
+            _chunks.Add(position, chunk);
 
             return chunk;
         }
@@ -74,12 +73,11 @@ namespace Hebert.Managers
         /// <exception cref="ArgumentOutOfRangeException"> If the given position is not within the bounds of a chunk. </exception>
         public Chunk GetChunkFromChunkPosition(Vector3I position)
         {
-            Chunk? chunk = _chunks.FirstOrDefault(x => x.ChunkPosition == position) ?? null;
-            if (chunk == null)
+            if (!_chunks.TryGetValue(position, out Chunk? result))
             {
                 throw new ArgumentOutOfRangeException($"There is no chunk at the given chunk position of {position}.");
             }
-            return chunk;
+            return result;
         }
 
 

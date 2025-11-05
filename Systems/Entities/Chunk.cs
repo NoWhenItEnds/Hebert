@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using Hebert.Types.AStar;
 
 namespace Hebert.Entities
 {
@@ -8,17 +9,17 @@ namespace Hebert.Entities
     public class Chunk : IEquatable<Chunk>
     {
         /// <summary> The coordinates in chunk space the chunk is positioned. </summary>
-        public Vector3I ChunkPosition { get; private set; } = Vector3I.Zero;
+        public readonly Vector3I ChunkPosition;
 
         /// <summary> How many cells the chunk contains. </summary>
-        public Int32 ChunkSize { get; private set; } = 0;
+        public readonly Int32 ChunkSize;
 
 
-        /// <summary> A grid of all the entities within the chunk. </summary>
-        private readonly List<IEntity>[,,] ENTITIES;
+        /// <summary> A grid of all the cells within the chunk. </summary>
+        private readonly Cell[,,] CELLS;
 
         /// <summary> The AStar implementation used for moving within the world. </summary>
-        private readonly AStar3D A_STAR = new AStar3D();
+        private readonly Graph<Cell> GRAPH;
 
 
         /// <summary> A unit of world space that keeps track of entities within its bounds. </summary>
@@ -28,82 +29,53 @@ namespace Hebert.Entities
         {
             ChunkPosition = chunkPosition;
             ChunkSize = chunkSize;
-            ENTITIES = new List<IEntity>[chunkSize, chunkSize, chunkSize];
-
-            Vector3I[] neighbourDirections = GenerateNeighbours();
+            CELLS = new Cell[chunkSize, chunkSize, chunkSize];
 
             // Initialise the cells.
+            List<Cell> cells = new List<Cell>();    // A 1D array of the cells for building the graph.
             for (Int32 z = 0; z < chunkSize; z++)
             {
                 for (Int32 y = 0; y < chunkSize; y++)
                 {
                     for (Int32 x = 0; x < chunkSize; x++)
                     {
-                        ENTITIES[x, y, z] = new List<IEntity>();
-
-                        // Add to the AStar grid.
                         Vector3I currentPosition = new Vector3I(x, y, z);
-                        Int64 id = GetPointId(currentPosition);
-                        A_STAR.AddPoint(id, currentPosition);
+                        Cell cell = new Cell(this, currentPosition);
+                        CELLS[x, y, z] = cell;
+                        cells.Add(cell);
                     }
                 }
             }
 
-            ConnectAStarGrid();
+            GRAPH = Graph<Cell>.Build(cells.ToArray());
 
             GD.Print($"Chunk @ {ChunkPosition} was initialised.");    // TODO - Use logger.
         }
 
 
-        private void ConnectAStarGrid()
+        /// <summary> Get all the cells currently bordering the given chunk position. </summary>
+        /// <param name="position"> The local chunk coordinate to get the neighbouring cells from. </param>
+        /// <returns> All the cells bordering the given cell position. </returns>
+        public Cell[] GetNeighbours(Vector3I position)
         {
-            Vector3I[] neighbourDirections = GenerateNeighbours();
-
-            for (Int32 z = 0; z < ChunkSize; z++)
-            {
-                for (Int32 y = 0; y < ChunkSize; y++)
-                {
-                    for (Int32 x = 0; x < ChunkSize; x++)
-                    {
-                        Vector3I currentPosition = new Vector3I(x, y, z);
-                        Int64 id = GetPointId(currentPosition);
-
-                        // Connect to each neighbour.
-                        foreach (Vector3I neighbour in neighbourDirections)
-                        {
-                            Vector3I neighbourPosition = currentPosition + neighbour;
-                            if (neighbourPosition.X >= 0 && neighbourPosition.X < ChunkSize &&
-                                neighbourPosition.Y >= 0 && neighbourPosition.Y < ChunkSize &&
-                                neighbourPosition.Z >= 0 && neighbourPosition.Z < ChunkSize)
-                            {
-                                Int64 nid = GetPointId(neighbourPosition);
-                                A_STAR.ConnectPoints(id, nid, true);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        /// <summary> Generate an array of relative neighbour positions. </summary>
-        private Vector3I[] GenerateNeighbours()
-        {
-            List<Vector3I> positions = new List<Vector3I>();
+            List<Cell> cells = new List<Cell>();
             for (Int32 z = -1; z <= 1; z++)
             {
                 for (Int32 y = -1; y <= 1; y++)
                 {
                     for (Int32 x = -1; x <= 1; x++)
                     {
-                        if (!(x == 0 && y == 0 && z == 0))   // All positions but the centre.
+                        Vector3I relativePosition = position + new Vector3I(x, y, z);
+                        if(relativePosition.X >= 0 && relativePosition.Y >= 0 && relativePosition.Z >= 0 &&
+                            relativePosition.X < ChunkSize && relativePosition.Y < ChunkSize && relativePosition.Z < ChunkSize &&
+                            relativePosition != position)
                         {
-                            positions.Add(new Vector3I(x, y, z));
+                            cells.Add(CELLS[relativePosition.X, relativePosition.Y, relativePosition.Z]);
                         }
                     }
                 }
             }
-            return positions.ToArray();
+            return cells.ToArray();
         }
 
 
@@ -137,7 +109,7 @@ namespace Hebert.Entities
                 throw new ArgumentOutOfRangeException($"The given position, {localPosition}, is beyond the chunk bounds of {Vector3I.Zero} - {ChunkSize}.");
             }
 
-            return ENTITIES[localPosition.X, localPosition.Y, localPosition.Z].ToArray();
+            return CELLS[localPosition.X, localPosition.Y, localPosition.Z].Entities.ToArray();
         }
 
 
@@ -150,12 +122,7 @@ namespace Hebert.Entities
     }
 }
 
-
-using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
+/*
 public partial class Chunk : Node3D
 {
     public const int Size = 16;
@@ -464,4 +431,4 @@ public partial class WorldChunkManager : Node
             _ => v.Z
         };
     }
-}
+}*/
