@@ -65,7 +65,7 @@ namespace Hebert.Entities
         {
             if (_entityData != null)
             {
-                Vector3I entityPosition = _entityData.Position.GlobalPosition;
+                Vector3I entityPosition = _entityData.Position;
 
                 // Need to break the vectors as godot-space is different.
                 Vector3 godotPosition = new Vector3(entityPosition.X, entityPosition.Z, entityPosition.Y) * new Vector3(_cellSize.X, _cellSize.Z, _cellSize.Y);

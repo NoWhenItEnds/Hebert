@@ -1,5 +1,6 @@
+using System;
 using Godot;
-using Hebert.Types;
+using Hebert.Managers;
 
 namespace Hebert.Entities
 {
@@ -7,10 +8,18 @@ namespace Hebert.Entities
     public class Actor : IEntity
     {
         /// <inheritdoc/>
-        public WorldPosition Position { get; private set; }
+        public Vector3I Position { get; private set; }
+
+        /// <inheritdoc/>
+        public bool BlocksMovement { get; private set; } = false;
+
+        /// <inheritdoc/>
+        public bool BlocksSight { get; private set; } = false;
 
 
-        public Actor(WorldPosition position)
+        /// <summary> An entity with autonomous movement. Represents a creature within the game world. </summary>
+        /// <param name="position"> The actor's initial cell position within the world. </param>
+        public Actor(Vector3I position)
         {
             Position = position;
         }
@@ -18,16 +27,19 @@ namespace Hebert.Entities
 
         /// <summary> Attempt to move the actor to a new location relative to itself. It will move towards the position until something blocks it. </summary>
         /// <param name="relativePosition"> The cell coordinates of a position relative to the entity. </param>
-        /// <returns> An array of all blocking entities. </returns>
-        public IEntity[] Move(Vector3I relativePosition)
+        /// <returns> Whether the action was successfully completed. </returns>
+        public Boolean Move(Vector3I relativePosition)
         {
-            // TODO - This should include a AStar pather.
-            IEntity[] entities = Position.GetEntities(Position.GlobalPosition + relativePosition);
-            if(entities.Length == 0)
+            Vector3I desiredPosition = Position + relativePosition;
+            Cell desiredCell = ChunkManager.Instance.GetCell(desiredPosition);
+            Boolean isSuccessful = false;
+            // TODO - Should use the astar.
+            if(!desiredCell.BlocksMovement)
             {
-                Position.UpdateRelativePosition(relativePosition);
+                Position = desiredPosition;
+                isSuccessful = true;
             }
-            return entities;
+            return isSuccessful;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Hebert.Managers
         public EntityNode CreateEntity<T>(Vector3I worldPosition) where T : IEntity
         {
             EntityNode entity = _entityPool.GetAvailableObject();
-            Actor actor = new Actor(WorldPosition.Create(worldPosition));
+            Actor actor = new Actor(worldPosition);
             entity.Initialise(actor);
             return entity;
         }

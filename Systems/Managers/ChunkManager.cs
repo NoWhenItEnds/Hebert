@@ -21,7 +21,7 @@ namespace Hebert.Managers
 
         /// <summary> The number of chunks in the world. </summary>
         // TODO - Make this generated from a world schematic.
-        [Export] private Vector3I _worldSize = new Vector3I(1, 1, 1);
+        [Export] private Vector3I _worldSize = new Vector3I(10, 10, 1);
 
 
         /// <summary> A reference to the local manager of tasks. </summary>
@@ -86,6 +86,17 @@ namespace Hebert.Managers
         /// <returns> The found chunk. Will throw an error if the position is out of bounds. </returns>
         /// <exception cref="ArgumentOutOfRangeException"> If the given position is not within the bounds of a chunk. </exception>
         public Chunk GetChunkFromWorldPosition(Vector3I globalPosition) => GetChunkFromChunkPosition(globalPosition / _chunkSize);
+
+
+        /// <summary> Gets the cell at the given global position. </summary>
+        /// <param name="globalPosition"> The global position. </param>
+        /// <returns> The cell representing the cell position.</returns>
+        public Cell GetCell(Vector3I globalPosition)
+        {
+            Chunk chunk = GetChunkFromWorldPosition(globalPosition);
+            Vector3I localPosition = globalPosition / _chunkSize;
+            return chunk.Cells[localPosition.X, localPosition.Y, localPosition.Z];
+        }
 
 
         /// <summary> Gets an array of the entities current occupying the given global position. </summary>

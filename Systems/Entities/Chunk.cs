@@ -14,12 +14,11 @@ namespace Hebert.Entities
         /// <summary> How many cells the chunk contains. </summary>
         public readonly Int32 ChunkSize;
 
-
         /// <summary> A grid of all the cells within the chunk. </summary>
-        private readonly Cell[,,] CELLS;
+        public readonly Cell[,,] Cells;
 
-        /// <summary> The AStar implementation used for moving within the world. </summary>
-        private readonly Graph<Cell> GRAPH;
+        /// <summary> The AStar implementation used for moving between cells within the chunk. </summary>
+        public readonly CellAStar3D Graph;
 
 
         /// <summary> A unit of world space that keeps track of entities within its bounds. </summary>
@@ -29,7 +28,7 @@ namespace Hebert.Entities
         {
             ChunkPosition = chunkPosition;
             ChunkSize = chunkSize;
-            CELLS = new Cell[chunkSize, chunkSize, chunkSize];
+            Cells = new Cell[chunkSize, chunkSize, chunkSize];
 
             // Initialise the cells.
             List<Cell> cells = new List<Cell>();    // A 1D array of the cells for building the graph.
@@ -41,45 +40,16 @@ namespace Hebert.Entities
                     {
                         Vector3I currentPosition = new Vector3I(x, y, z);
                         Cell cell = new Cell(this, currentPosition);
-                        CELLS[x, y, z] = cell;
+                        Cells[x, y, z] = cell;
                         cells.Add(cell);
                     }
                 }
             }
 
-            GRAPH = Graph<Cell>.Build(cells.ToArray());
+            Graph = new CellAStar3D(Cells);
 
             GD.Print($"Chunk @ {ChunkPosition} was initialised.");    // TODO - Use logger.
         }
-
-
-        /// <summary> Get all the cells currently bordering the given chunk position. </summary>
-        /// <param name="position"> The local chunk coordinate to get the neighbouring cells from. </param>
-        /// <returns> All the cells bordering the given cell position. </returns>
-        public Cell[] GetNeighbours(Vector3I position)
-        {
-            List<Cell> cells = new List<Cell>();
-            for (Int32 z = -1; z <= 1; z++)
-            {
-                for (Int32 y = -1; y <= 1; y++)
-                {
-                    for (Int32 x = -1; x <= 1; x++)
-                    {
-                        Vector3I relativePosition = position + new Vector3I(x, y, z);
-                        if(relativePosition.X >= 0 && relativePosition.Y >= 0 && relativePosition.Z >= 0 &&
-                            relativePosition.X < ChunkSize && relativePosition.Y < ChunkSize && relativePosition.Z < ChunkSize &&
-                            relativePosition != position)
-                        {
-                            cells.Add(CELLS[relativePosition.X, relativePosition.Y, relativePosition.Z]);
-                        }
-                    }
-                }
-            }
-            return cells.ToArray();
-        }
-
-
-        private Int64 GetPointId(Vector3I local) => local.X + local.Y * ChunkSize + local.Z * ChunkSize * ChunkSize;
 
 
         /// <summary> Get the position of a global position relative to the chunk, or in chunk coordinates. </summary>
@@ -109,7 +79,7 @@ namespace Hebert.Entities
                 throw new ArgumentOutOfRangeException($"The given position, {localPosition}, is beyond the chunk bounds of {Vector3I.Zero} - {ChunkSize}.");
             }
 
-            return CELLS[localPosition.X, localPosition.Y, localPosition.Z].Entities.ToArray();
+            return Cells[localPosition.X, localPosition.Y, localPosition.Z].Entities.ToArray();
         }
 
 
