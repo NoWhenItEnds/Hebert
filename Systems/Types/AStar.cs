@@ -86,10 +86,12 @@ namespace Hebert.Types.AStar
         {
             // Initialise the nodes.
             _nodes = new HashSet<GraphNode<T>>();
+            Dictionary<T, GraphNode<T>> map = new Dictionary<T, GraphNode<T>>();
             for (Int32 i = 0; i < values.Length; i++)
             {
                 GraphNode<T> node = new GraphNode<T>(i, values[i]);
                 _nodes.Add(node);
+                map.Add(values[i], node);
             }
 
             // Add the neighbours for each node.
@@ -98,10 +100,9 @@ namespace Hebert.Types.AStar
                 IGraphable[] neighbours = node.Value.GetNeighbours();
                 foreach (IGraphable neighbour in neighbours)
                 {
-                    node.Neighbours.Add(_nodes.First(x => x.Value == neighbour));   // TODO - FIX THIS!@
+                    node.Neighbours.Add(map[(T)neighbour]);
                 }
             }
-            Console.Beep();
         }
 
 
